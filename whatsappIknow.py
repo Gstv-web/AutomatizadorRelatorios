@@ -7,6 +7,7 @@ import os
 
 pathEnviados = "./Entrada/iKnow/Enviados/"
 pathRecebidos = "./Entrada/iKnow/Recebidos/"
+blacklist = pd.read_csv('./Blacklist.csv')
 
 def whatsappIknow():
     
@@ -77,6 +78,24 @@ def whatsappIknow():
             if enviados_df.loc[index, 'STATUS'] == 'Enviada' or enviados_df.loc[index, 'STATUS'] == 'Recebida' or enviados_df.loc[index, 'STATUS'] == 'Lida':
                 enviados_df.at[index, 'STATUS'] = newValue
 
+
+
+        # Removendo números que estão na blacklist
+        numBlacklist = []
+        for index in blacklist.index:
+            num = str(blacklist.loc[index, 'Telefone'])
+
+            novoNum = num
+            blacklist.at[index, 'Telefone'] = novoNum
+
+            numBlacklist.append(blacklist.loc[index, 'Telefone'])
+        
+        
+
+
+        for index in enviados_df.index:
+            if enviados_df.loc[index, 'TELEFONE'] in numBlacklist:
+                enviados_df.drop(index, inplace=True, axis=0)
 
 
         # OPENPYXL

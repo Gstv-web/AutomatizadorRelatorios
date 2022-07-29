@@ -7,6 +7,7 @@ import os
 
 
 path = './Entrada/Bewake/'
+blacklist = pd.read_csv('./Blacklist.csv')
 
 def whatsappBewake():
 
@@ -60,6 +61,22 @@ def whatsappBewake():
                 recebidos_df.drop(index, inplace=True, axis=0)
 
 
+        # Removendo números que estão na blacklist
+        numBlacklist = []
+        for index in blacklist.index:
+            num = str(blacklist.loc[index, 'Telefone'])
+
+            novoNum = num
+            blacklist.at[index, 'Telefone'] = novoNum
+
+            numBlacklist.append(blacklist.loc[index, 'Telefone'])
+        
+        
+
+
+        for index in enviados_df.index:
+            if enviados_df.loc[index, 'TELEFONE'] in numBlacklist:
+                enviados_df.drop(index, inplace=True, axis=0)
         
 
         #remover duplicatas

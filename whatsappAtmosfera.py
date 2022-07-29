@@ -8,6 +8,7 @@ import os
 
 pathEnviados = "./Entrada/Atmosfera/Enviados/"
 pathRecebidos = "./Entrada/Atmosfera/Recebidos/"
+blacklist = pd.read_csv('./Blacklist.csv')
 
 def whatsappAtmosfera():
 
@@ -89,6 +90,23 @@ def whatsappAtmosfera():
             if enviados_df.loc[index, 'STATUS'] == 'Yes':
                 enviados_df.at[index, 'STATUS'] = newValue
 
+
+        # Removendo números que estão na blacklist
+        numBlacklist = []
+        for index in blacklist.index:
+            num = str(blacklist.loc[index, 'Telefone'])
+
+            novoNum = num
+            blacklist.at[index, 'Telefone'] = novoNum
+
+            numBlacklist.append(blacklist.loc[index, 'Telefone'])
+        
+       
+
+
+        for index in enviados_df.index:
+            if enviados_df.loc[index, 'TELEFONE'] in numBlacklist:
+                enviados_df.drop(index, inplace=True, axis=0)
 
 
         # OPENPYXL
