@@ -9,8 +9,11 @@ import os
 pathEnviados = "./Entrada/Atmosfera/Enviados/"
 pathRecebidos = "./Entrada/Atmosfera/Recebidos/"
 blacklist = pd.read_csv('./Blacklist.csv')
+pathSaida = './Saida/Atmosfera/'
 
 def whatsappAtmosfera():
+
+    counter = 0
 
     arquivosEnviados = os.listdir(pathEnviados)
     arquivosRecebidos = os.listdir(pathRecebidos)
@@ -100,23 +103,24 @@ def whatsappAtmosfera():
             blacklist.at[index, 'Telefone'] = novoNum
 
             numBlacklist.append(blacklist.loc[index, 'Telefone'])
-        
-       
-
 
         for index in enviados_df.index:
             if enviados_df.loc[index, 'TELEFONE'] in numBlacklist:
                 enviados_df.drop(index, inplace=True, axis=0)
 
 
+
+
         # OPENPYXL
-        with pd.ExcelWriter('./Conversoes/FornecedorB.xlsx') as writer:
+        counter += 1
+        strCounter = str(counter)
+        with pd.ExcelWriter(f'./Conversoes/{strCounter}-{file}.xlsx') as writer:
             enviados_df.to_excel(writer, sheet_name='Enviados', index=False)
             recebidos_df.to_excel(writer, sheet_name='Respostas', index=False)
 
 
 
-        reader = load_workbook('./Conversoes/FornecedorB.xlsx')
+        reader = load_workbook(f'./Conversoes/{strCounter}-{file}.xlsx')
 
 
         enviados_ws = reader['Enviados']
@@ -165,5 +169,5 @@ def whatsappAtmosfera():
                 cell.border = thin_border
 
 
-        reader.save("./Saida/Atmosfera/RelatorioTeste.xlsx")
+        reader.save(f"{pathSaida}{file}result-{strCounter}.xlsx")
 

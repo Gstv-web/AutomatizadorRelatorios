@@ -6,10 +6,14 @@ from openpyxl.styles import Alignment, Border, Side
 import os
 
 
+###  VERIFICAR PATHSAIDA, COUNTER E NA PARTE DO NOME DA CONVERSÃO
+
 path = './Entrada/Bewake/'
+pathSaida = './Saida/Bewake/'
 blacklist = pd.read_csv('./Blacklist.csv')
 
 def whatsappBewake():
+    counter = 0
 
     for file in os.listdir(path):
         reader = pd.read_csv(path + file, sep=";", encoding="latin-1", on_bad_lines='skip')
@@ -71,8 +75,6 @@ def whatsappBewake():
 
             numBlacklist.append(blacklist.loc[index, 'Telefone'])
         
-        
-
 
         for index in enviados_df.index:
             if enviados_df.loc[index, 'TELEFONE'] in numBlacklist:
@@ -92,12 +94,14 @@ def whatsappBewake():
 
 
         # OPENPYXL
-        with pd.ExcelWriter('./Conversoes/Relatorio_Whatsapp_Bewake.xlsx') as writer:
+        counter += 1
+        strCounter = str(counter)
+        with pd.ExcelWriter(f'{strCounter}-{file}.xlsx') as writer:
             enviados_df.to_excel(writer, sheet_name='Enviados', index=False)
             recebidos_df.to_excel(writer, sheet_name='Recebidos', index=False, engine='xlsxwriter')
             
 
-        reader = load_workbook('./Conversoes/Relatorio_Whatsapp_Bewake.xlsx')
+        reader = load_workbook(f'{strCounter}-{file}.xlsx')
 
         enviados_ws = reader['Enviados']
         recebidos_ws = reader['Recebidos']
@@ -145,6 +149,6 @@ def whatsappBewake():
                 cell.border = thin_border
 
 
-        reader.save("./Saida/Bewake/RelatorioWhatsappBewake.xlsx")
-
-
+        reader.save(f"{pathSaida}{strCounter}-{file}-result.xlsx")
+       
+        

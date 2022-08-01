@@ -6,30 +6,39 @@ from openpyxl.styles import Alignment, Border, Side
 import os
 
 
-path = './Entrada/Ligdata/'
+path = './Entrada/Alcance/'
+pathSaida = './Saida/Alcance/'
 blacklist = pd.read_csv('./Blacklist.csv')
-pathSaida = './Saida/Ligdata/'
 
-def whatsappLigdata():
+
+def whatsappAlcance():
+
     counter = 0
 
-    for file in os.listdir(path):
-        
 
-        readerEnviados = pd.read_excel(path + file, sheet_name='Envio')
-        readerRecebidos = pd.read_excel(path + file, sheet_name='Respostas')
+    arquivosEnviados = os.listdir(path)
 
+    arquivosEnviados.sort()
 
-        readerEnviados.rename(columns={'Data' : 'DATA', 'Destinatários' : 'TELEFONE', 'Status' : 'STATUS'}, inplace=True)
-        readerRecebidos.rename(columns={'Destinatários' : 'TELEFONE', 'Respostas' : 'MENSAGEM'}, inplace=True)
+    for i, file in enumerate(arquivosEnviados):
+        reader = pd.read_csv(path + file, sep=';')
 
-
-        enviados_df = readerEnviados.copy()
-        recebidos_df = readerRecebidos.copy()
+        reader.rename(columns={'contato' : 'TELEFONE', 'dt_envio' : 'DATA', 'resp' : 'MENSAGEM'}, inplace=True)
 
 
-        # EDITANDO PLANILHA "ENVIADOS"
-        # Removendo 55 do telefone
+
+        enviados_df = reader.copy()
+        recebidos_df = reader.copy()
+
+
+        #Inserindo coluna "Status"
+        enviados_df.insert(3, 'STATUS', 'Enviado')
+
+
+
+        # RELATÓRIO
+
+
         for index in enviados_df.index:
             numero = str(enviados_df.loc[index, 'TELEFONE'])
 
@@ -41,36 +50,14 @@ def whatsappLigdata():
 
         enviados_df.drop_duplicates(subset=['TELEFONE'], keep='first', inplace=True)
 
-        enviados_df.drop(columns=['Mensagem'], inplace=True)
+        enviados_df.drop(enviados_df.columns[2], inplace=True, axis=1)
 
-        enviados_df = enviados_df[['TELEFONE', 'DATA', 'STATUS']]
-
-
-
-
-        #EDITANDO PLANILHA "RESPOSTAS"
-        # Remover 55 do telefone
-        for index in recebidos_df.index:
-            numero = str(enviados_df.loc[index, 'TELEFONE'])
-
-            if numero[0:2] == '55':
-                novoNum = numero.lstrip('55')
-
-            recebidos_df.at[index, 'TELEFONE'] = novoNum
-
-
-        # remover linhas “no” alterar e células de “yes” para “enviado” 
+        #Removendo linhas com erro de envio
         for index in enviados_df.index:
-            if enviados_df.loc[index, 'STATUS'] == 'Inválida':
+            if enviados_df.loc[index, 'DATA'] == "error":
                 enviados_df.drop(index, inplace=True, axis=0)
 
-        for index in enviados_df.index:
-            newValue = str('Enviado')
-            if enviados_df.loc[index, 'STATUS'] == 'Enviada':
-                enviados_df.at[index, 'STATUS'] = newValue
-
-
-        # Removendo números que estão na blacklist
+        # Removendo números da blacklist
         numBlacklist = []
         for index in blacklist.index:
             num = str(blacklist.loc[index, 'Telefone'])
@@ -86,19 +73,41 @@ def whatsappLigdata():
 
 
 
+        # RESPOSTAS
+
+
+        recebidos_df.drop(recebidos_df.columns[1], inplace=True, axis=1)
+
+
+        for index in recebidos_df.index:
+            numero = str(recebidos_df.loc[index, 'TELEFONE'])
+
+            if numero[0:2] == '55':
+                novoNum = numero.lstrip('55')
+
+            recebidos_df.at[index, 'TELEFONE'] = novoNum
+
+
+        for index in recebidos_df.index:
+            status = str(recebidos_df.loc[index, 'MENSAGEM'])
+            if recebidos_df.loc[index, 'MENSAGEM'] != "SAIR DA LISTA" and recebidos_df.loc[index, 'MENSAGEM'] != "SIM":
+                recebidos_df.drop(index, inplace=True, axis=0)
+
+
+
         # OPENPYXL
+
         counter += 1
         strCounter = str(counter)
-        with pd.ExcelWriter(f'./Conversoes/{strCounter}-{file}.xlsx') as writer:
+        with pd.ExcelWriter(f'./{strCounter}-file.xlsx') as writer:
             enviados_df.to_excel(writer, sheet_name='Enviados', index=False)
             recebidos_df.to_excel(writer, sheet_name='Respostas', index=False)
 
 
-        reader = load_workbook(f'./Conversoes/{strCounter}-{file}.xlsx')
+        excelReader = load_workbook(f'./{strCounter}-file.xlsx')
 
-
-        enviados_ws = reader['Enviados']
-        recebidos_ws = reader['Respostas']
+        enviados_ws = excelReader['Enviados']
+        recebidos_ws = excelReader['Respostas']
 
         enviados_ws.column_dimensions['A'].width = 17
         enviados_ws.column_dimensions['B'].width = 14
@@ -118,7 +127,7 @@ def whatsappLigdata():
 
         for col in enviados_ws.iter_cols(min_row=2, min_col=2, max_col=2):
             for cell in col:
-                celula = cell.value.strftime("%d/%m/%Y") # aqui eu acessei o valor da célula, agora eu posso alterar o valor
+                celula = cell.value# aqui eu acessei o valor da célula, agora eu posso alterar o valor
                 dateSet = celula.split() # O estilo de data é diferente e precisa ser alterado
                 justDate = dateSet[0] # Aqui eu acesso apenas a data
                 cell.value = justDate # Aqui eu altero o valor da célula
@@ -141,4 +150,4 @@ def whatsappLigdata():
                 cell.border = thin_border
 
 
-        reader.save(f"{pathSaida}{strCounter}-{file}-result.xlsx")
+        excelReader.save(f"{pathSaida}{strCounter}-result.xlsx")

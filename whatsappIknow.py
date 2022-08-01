@@ -8,9 +8,11 @@ import os
 pathEnviados = "./Entrada/iKnow/Enviados/"
 pathRecebidos = "./Entrada/iKnow/Recebidos/"
 blacklist = pd.read_csv('./Blacklist.csv')
+pathSaida = "./Saida/iKnow/"
 
 def whatsappIknow():
     
+    counter = 0
 
     arquivosEnviados = os.listdir(pathEnviados)
     arquivosRecebidos = os.listdir(pathRecebidos)
@@ -100,14 +102,15 @@ def whatsappIknow():
 
         # OPENPYXL
         # "Converter" para excel (uso de openpyxl a partir de agora)
-
-        with pd.ExcelWriter('./Conversoes/RelatórioWhatsApp.xlsx') as writer:
+        counter += 1
+        strCounter = str(counter)
+        with pd.ExcelWriter(f'./Conversoes/{strCounter}-{file}.xlsx') as writer:
             enviados_df.to_excel(writer, sheet_name='Enviados', index=False)
             recebidos_df.to_excel(writer, sheet_name='Respostas', index=False)
 
 
         # ler arquivo
-        teste_wb = load_workbook('./Conversoes/RelatórioWhatsapp.xlsx')
+        teste_wb = load_workbook(f'./Conversoes/{strCounter}-{file}.xlsx')
 
         # Variável para selecionar a aba
         teste_wb_page = teste_wb['Enviados']
@@ -163,4 +166,4 @@ def whatsappIknow():
         teste_wb_page.delete_cols(4, 2)
 
         # Salvar arquivo
-        teste_wb.save('./Saida/iKnow/RelatórioWhatsapp.xlsx')
+        teste_wb.save(f'{pathSaida}{strCounter}-{file}-result.xlsx')

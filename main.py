@@ -2,6 +2,7 @@ import whatsappAtmosfera
 import whatsappBewake
 import whatsappIknow
 import whatsappLigdata
+import whatsappAlcance
 import os
 from time import sleep
 
@@ -11,7 +12,7 @@ from time import sleep
 
 
 while True:
-    escolha = int(input("Escolha o tipo de plataforma: \n 1 - Atmosfera \n 2 - Bewake \n 3 - Iknow \n 4 - Ligdata \n 5 - Sair \n Escolha sua opção: "))
+    escolha = int(input("Escolha o tipo de plataforma: \n 1 - Atmosfera \n 2 - Bewake \n 3 - Iknow \n 4 - Ligdata \n 5 - Alcance \n 6 - Sair \n Escolha sua opção: "))
 
     if escolha == 1:
         whatsappAtmosfera.whatsappAtmosfera()
@@ -22,6 +23,8 @@ while True:
     elif escolha == 4:
         whatsappLigdata.whatsappLigdata()
     elif escolha == 5:
+        whatsappAlcance.whatsappAlcance()
+    elif escolha == 6:
         print("Encerrando...")
         exit()
     else:
